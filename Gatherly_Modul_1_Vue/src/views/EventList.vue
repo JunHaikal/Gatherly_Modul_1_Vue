@@ -1,97 +1,127 @@
-
 <script setup>
+import { ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
+
+import EventCard from '@/components/event/EventCard.vue';
+import SearchBar from '@/components/event/SearchBar.vue';
+import CategoryFilter from '@/components/event/CategoryFilter.vue';
+
+const router = useRouter();
+
 const events = [
   {
     id: 1,
     title: 'Vue.js Mastery Workshop',
     date: 'Oct 12, 2026',
-    loc: '📍 Tech Hub, Jakarta',
     cat: 'Workshop',
-    desc: 'A hands-on workshop to build high-performance web applications interactively.',
+    loc: '📍 Tech Hub, Jakarta',
+    desc: 'Master modern Vue.js concepts, Composition API, and state management to build high-performance web applications interactively.'
   },
   {
     id: 2,
     title: 'National Tech Meetup',
-    date: 'Oct 15, 2026',
-    loc: '📍 Main Auditorium, City Center',
+    date: 'Oct 16, 2026',
     cat: 'Meetup',
-    desc: 'A gathering of developers and tech enthusiasts to share the latest industry trends and expand professional networks.',
+    loc: '📍 Main Auditorium, City Center',
+    desc: 'A gathering of hundreds of developers and tech enthusiasts to share the latest industry trends and expand professional networks.'
   },
   {
     id: 3,
     title: 'Startup Pitch Competition',
     date: 'Nov 02, 2026',
-    loc: '📍 Innovation Center',
     cat: 'Competition',
-    desc: 'Watch the best local startup founders pitch their innovative ideas live in front of a panel of renowned investors.',
+    loc: '📍 Innovation Center',
+    desc: 'Watch the best tech startups compete for thousands in investment prizes and mentorship opportunities.'
   },
   {
     id: 4,
     title: 'UI/UX Design Sprint',
     date: 'Nov 10, 2026',
-    loc: '📍 Creative Studio',
     cat: 'Workshop',
-    desc: 'A hands-on session on designing engaging user interfaces by implementing layout systems and visual hierarchy principles.',
+    loc: '📍 Creative Studio',
+    desc: 'Master the art of designing user interfaces using the latest UI/UX design tools and visual hierarchy principles.'
   },
   {
     id: 5,
     title: 'Digital Marketing Seminar',
-    date: 'Nov 20, 2026',
-    loc: '📍 Grand Hotel Hall',
+    date: 'Nov 18, 2026',
     cat: 'Seminar',
-    desc: 'An in-depth seminar discussing modern digital marketing strategies, from SEO optimization to user conversion tactics.',
+    loc: '📍 Grand Hotel Hall',
+    desc: 'Learn advanced digital marketing strategies, from SEO optimization to user segmentation to sustainable audience growth.'
   },
   {
     id: 6,
     title: 'Community Leaders Summit',
     date: 'Dec 05, 2026',
-    loc: '📍 Gatherly HQ',
     cat: 'Conference',
-    desc: 'An exclusive year-end conference for community leaders to formulate sustainable ecosystem development strategies.',
-  },
-]
+    loc: '📍 Gatherly HQ',
+    desc: 'An exclusive event for community leaders to formulate sustainable ecosystem development strategies.'
+  }
+];
+
+const searchQuery = ref('');
+const selectedCategory = ref('All');
+
+const categories = [
+  'All',
+  'Workshop',
+  'Meetup',
+  'Competition',
+  'Seminar',
+  'Conference'
+];
+
+const filteredEvents = computed(() => {
+  return events.filter((event) => {
+    const search = searchQuery.value.toLowerCase();
+
+    const matchesSearch =
+      event.title.toLowerCase().includes(search) ||
+      event.loc.toLowerCase().includes(search);
+
+    const matchesCategory =
+      selectedCategory.value === 'All' ||
+      event.cat === selectedCategory.value;
+
+    return matchesSearch && matchesCategory;
+  });
+});
+
+const handleViewDetail = (id) => {
+  router.push(`/browse/events/${id}`);
+};
 </script>
 
 <template>
   <div class="event-list-page">
     <div class="header-section">
       <h2 class="section-title">Upcoming Events</h2>
+
       <p class="section-desc">
         Discover workshops, seminars, tech meetups, and competitions near you.
       </p>
     </div>
 
-    <!-- LAYOUT SYSTEM: ADAPTIVE GRID -->
-    <div class="event-grid">
-      <!-- VISUAL HIERARCHY: GROUPING & COMMON REGIONS -->
-      <div
-        class="event-card"
-        v-for="event in events"
+    <div class="filters-section">
+      <SearchBar v-model="searchQuery" />
+
+      <CategoryFilter
+        :categories="categories"
+        v-model="selectedCategory"
+      />
+    </div>
+
+    <div v-if="filteredEvents.length > 0" class="event-grid">
+      <EventCard
+        v-for="event in filteredEvents"
         :key="event.id"
-      >
-        <div class="event-body">
-          <div class="event-meta">
-            <!-- LABEL CONTRAST: Recognition over Recall -->
-            <span class="event-date">{{ event.date }}</span>
-            <span class="event-category">{{ event.cat }}</span>
-          </div>
+        :event="event"
+        @view-detail="handleViewDetail"
+      />
+    </div>
 
-          <h3 class="event-title">{{ event.title }}</h3>
-          <p class="event-loc">{{ event.loc }}</p>
-          <p class="event-desc">
-            {{ event.desc }}
-          </p>
-
-          <div class="card-footer">
-            <router-link
-              :to="`/browse/events/${event.id}`"
-              class="btn-link"
-            >
-              View Event Details &rarr;
-            </router-link>
-          </div>
-        </div>
-      </div>
+    <div v-else class="empty-state">
+      <p>No events found matching your criteria.</p>
     </div>
   </div>
 </template>
@@ -111,91 +141,27 @@ const events = [
   font-size: 1.1rem;
 }
 
-/* ADAPTIVE GRID */
+.filters-section {
+  margin-bottom: var(--space-6);
+}
+
 .event-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: var(--space-6);
 }
 
-/* COMMON REGIONS */
-.event-card {
-  background: white;
+.empty-state {
+  text-align: center;
+  padding: var(--space-12);
+  color: var(--text-muted);
+  background: var(--bg-light);
   border-radius: var(--space-4);
-  border: 1px solid var(--border-color);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.event-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.06);
-}
-
-/* PROXIMITY */
-.event-body {
-  padding: var(--space-6);
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.event-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--space-4);
-}
-
-.event-date {
-  background: rgba(102, 68, 255, 0.1);
-  color: var(--primary);
-  padding: var(--space-1) var(--space-2);
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 0.85rem;
-}
-
-.event-category {
-  color: var(--text-muted);
-  font-size: 0.85rem;
-  font-weight: 500;
-  text-transform: uppercase;
-}
-
-.event-title {
-  margin: var(--space-2) 0;
-  font-size: 1.4rem;
-}
-
-.event-loc {
-  color: var(--text-muted);
-  font-size: 0.95rem;
-  margin-bottom: var(--space-4);
-}
-
-.event-desc {
-  color: var(--text-muted);
-  line-height: 1.6;
-  font-size: 0.95rem;
-  margin-bottom: var(--space-6);
-  flex-grow: 1;
-}
-
-.card-footer {
-  border-top: 1px solid var(--border-color);
-  padding-top: var(--space-4);
-}
-
-.btn-link {
-  color: var(--text-main);
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.btn-link:hover {
-  color: var(--primary);
+@media (max-width: 700px) {
+  .event-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
