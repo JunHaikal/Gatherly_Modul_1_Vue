@@ -1,495 +1,273 @@
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter } from 'vue-router';
+import { useEvents } from '@/composables/useEvents';
+import AppCard from '@/components/ui/AppCard.vue';
+import AppButton from '@/components/ui/AppButton.vue';
 
-const router = useRouter()
-
-const stats = [
-  { label: 'Total Events', value: '24', change: '+12% this month', icon: '🎟️', trend: 'up' },
-  { label: 'Total Attendees', value: '1,840', change: '+18% this month', icon: '👥', trend: 'up' },
-  { label: 'Tickets Sold', value: '1,320', change: '85% occupancy', icon: '🎫', trend: 'up' },
-  { label: 'Total Revenue', value: 'Rp 48.5M', change: '+15.2% vs last month', icon: '💳', trend: 'up' }
-]
-
-const recentEvents = [
-  {
-    id: 1,
-    title: 'Community Gathering 2026',
-    category: 'Community',
-    date: 'Oct 15, 2026',
-    location: 'Main Auditorium, City Center',
-    status: 'Active',
-    attendees: '455 / 500'
-  },
-  {
-    id: 2,
-    title: 'Tech Innovation Summit',
-    category: 'Technology',
-    date: 'Oct 18, 2026',
-    location: 'Innovation Hall, Tech City',
-    status: 'Active',
-    attendees: '320 / 350'
-  },
-  {
-    id: 3,
-    title: 'Live Music Night',
-    category: 'Music',
-    date: 'Oct 22, 2026',
-    location: 'Central Park Stage',
-    status: 'Draft',
-    attendees: '0 / 200'
-  },
-  {
-    id: 4,
-    title: 'Business Connect Meetup',
-    category: 'Business',
-    date: 'Oct 28, 2026',
-    location: 'Grand Convention Hall',
-    status: 'Active',
-    attendees: '180 / 200'
-  }
-]
-
-const filterStatus = ref('all')
-
-const handleCreateEvent = () => {
-  alert('Fitur tambah event siap dikembangkan di modul berikutnya!')
-}
+const router = useRouter();
+const { events, totalEvents, activeEvents, completedEvents } = useEvents();
 </script>
 
 <template>
-  <div class="dashboard-page">
-    <!-- Header Greeting -->
-    <header class="dash-header">
+  <div class="dashboard-overview">
+    <div class="dashboard-header">
       <div>
-        <h1 class="dash-title">Organizer Dashboard</h1>
-        <p class="dash-subtitle">Selamat datang kembali! Pantau performa dan kelola event Gatherly Anda.</p>
+        <h2>Organizer Analytics &amp; Overview</h2>
+        <p class="subtitle">Monitor real-time statistics and track status across all managed events.</p>
       </div>
-      <div class="dash-actions">
-        <button class="btn btn-primary" @click="handleCreateEvent">
-          <span>+ Create New Event</span>
+      <AppButton variant="primary" @click="router.push('/dashboard/events')">
+        Manage Events &rarr;
+      </AppButton>
+    </div>
+
+    <div class="metrics-grid">
+      <AppCard class="metric-card">
+        <h3>Total Events</h3>
+        <p class="metric-value">{{ totalEvents }}</p>
+        <span class="metric-hint">All recorded events</span>
+      </AppCard>
+
+      <AppCard class="metric-card">
+        <h3>Active Events</h3>
+        <p class="metric-value text-success">{{ activeEvents.length }}</p>
+        <span class="metric-hint">Live in public catalog</span>
+      </AppCard>
+
+      <AppCard class="metric-card">
+        <h3>Completed Events</h3>
+        <p class="metric-value text-muted">{{ completedEvents.length }}</p>
+        <span class="metric-hint">Archived completed events</span>
+      </AppCard>
+    </div>
+
+    <div class="data-table-container">
+      <div class="table-header">
+        <div>
+          <h3>Recent Events Status Overview</h3>
+          <p class="table-subtitle">Master registry of all events managed across the Gatherly platform.</p>
+        </div>
+        <button class="btn-manage-link" @click="router.push('/dashboard/events')">
+          Open Event Management &rarr;
         </button>
       </div>
-    </header>
 
-    <!-- Stat Cards Grid -->
-    <section class="stats-grid">
-      <div class="stat-card" v-for="(stat, idx) in stats" :key="idx">
-        <div class="stat-top">
-          <span class="stat-icon">{{ stat.icon }}</span>
-          <span class="stat-trend badge">{{ stat.change }}</span>
-        </div>
-        <div class="stat-bottom">
-          <h3 class="stat-value">{{ stat.value }}</h3>
-          <p class="stat-label">{{ stat.label }}</p>
-        </div>
-      </div>
-    </section>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Event Title</th>
+            <th>Category</th>
+            <th>Date &amp; Location</th>
+            <th>Quota</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-if="events.length === 0">
+            <td colspan="5" class="empty-table-cell">
+              <div class="empty-table-content">
+                <span class="empty-icon">📊</span>
+                <p>No events recorded in the system yet.</p>
+                <AppButton variant="primary" @click="router.push('/dashboard/events')">
+                  Create First Event
+                </AppButton>
+              </div>
+            </td>
+          </tr>
 
-    <!-- Main Content: Recent Events & Quick Overview -->
-    <section class="dashboard-content">
-      <!-- Events Table -->
-      <div class="panel-card events-panel">
-        <div class="panel-header">
-          <div>
-            <h2>Recent Events</h2>
-            <p>Daftar event yang sedang aktif dan dikelola</p>
-          </div>
-          <router-link to="/browse/events" class="btn-link">View All Events &rarr;</router-link>
-        </div>
-
-        <div class="table-container">
-          <table class="dash-table">
-            <thead>
-              <tr>
-                <th>Event Name</th>
-                <th>Category</th>
-                <th>Date</th>
-                <th>Attendees</th>
-                <th>Status</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="item in recentEvents" :key="item.id">
-                <td>
-                  <div class="event-cell-name">
-                    <strong>{{ item.title }}</strong>
-                    <span class="event-cell-loc">📍 {{ item.location }}</span>
-                  </div>
-                </td>
-                <td>
-                  <span class="category-pill">{{ item.category }}</span>
-                </td>
-                <td>{{ item.date }}</td>
-                <td>
-                  <div class="attendee-stat">
-                    <span>{{ item.attendees }}</span>
-                  </div>
-                </td>
-                <td>
-                  <span
-                    class="status-badge"
-                    :class="item.status.toLowerCase()"
-                  >
-                    {{ item.status }}
-                  </span>
-                </td>
-                <td>
-                  <router-link :to="`/browse/events/${item.id}`" class="table-btn-link">
-                    Detail
-                  </router-link>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Quick Tips & Shortcuts -->
-      <div class="panel-card shortcuts-panel">
-        <div class="panel-header">
-          <h2>Quick Navigation</h2>
-          <p>Akses cepat modul</p>
-        </div>
-
-        <div class="shortcut-list">
-          <router-link to="/browse/events" class="shortcut-item">
-            <div class="shortcut-icon">🎟️</div>
-            <div class="shortcut-info">
-              <strong>Event Directory</strong>
-              <span>Katalog publik event Gatherly</span>
-            </div>
-            <span class="arrow">&rsaquo;</span>
-          </router-link>
-
-          <router-link to="/browse/category" class="shortcut-item">
-            <div class="shortcut-icon">🏷️</div>
-            <div class="shortcut-info">
-              <strong>Categories</strong>
-              <span>Kelola dan jelajahi kategori event</span>
-            </div>
-            <span class="arrow">&rsaquo;</span>
-          </router-link>
-
-          <router-link to="/" class="shortcut-item">
-            <div class="shortcut-icon">🏠</div>
-            <div class="shortcut-info">
-              <strong>Public Homepage</strong>
-              <span>Lihat halaman utama pengguna</span>
-            </div>
-            <span class="arrow">&rsaquo;</span>
-          </router-link>
-
-          <router-link to="/contact" class="shortcut-item">
-            <div class="shortcut-icon">💬</div>
-            <div class="shortcut-info">
-              <strong>Support & Contact</strong>
-              <span>Bantuan & hubungi tim Gatherly</span>
-            </div>
-            <span class="arrow">&rsaquo;</span>
-          </router-link>
-        </div>
-      </div>
-    </section>
+          <tr v-for="item in events" :key="item.id">
+            <td class="font-semibold">{{ item.title }}</td>
+            <td><span class="category-badge">{{ item.cat }}</span></td>
+            <td>{{ item.date }} &bull; {{ item.loc }}</td>
+            <td>{{ item.quota }} Pax</td>
+            <td>
+              <span :class="['status-badge', item.done ? 'status-completed' : 'status-active']">
+                {{ item.done ? 'Completed' : 'Active' }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.dashboard-page {
-  display: flex;
-  flex-direction: column;
-  gap: 1.75rem;
+.dashboard-overview {
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.dash-header {
+.dashboard-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: var(--space-8);
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: var(--space-4);
 }
 
-.dash-title {
-  font-size: 1.85rem;
-  font-weight: 800;
-  color: #1c1948;
-  margin-bottom: 0.25rem;
+.dashboard-header h2 {
+  font-size: 2rem;
+  color: var(--text-main);
+  margin-bottom: var(--space-1);
 }
 
-.dash-subtitle {
-  color: #73718b;
-  margin: 0;
+.subtitle {
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-6);
+  margin-bottom: var(--space-8);
+}
+
+.metric-card {
+  padding: var(--space-6);
+  text-align: left;
+}
+
+.metric-card h3 {
   font-size: 0.95rem;
-}
-
-.dash-actions {
-  display: flex;
-  gap: 0.75rem;
-}
-
-/* Stat Cards */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.25rem;
-}
-
-.stat-card {
-  background: white;
-  border: 1px solid #eceaf5;
-  border-radius: 16px;
-  padding: 1.35rem;
-  box-shadow: 0 8px 24px rgba(30, 24, 75, 0.04);
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(30, 24, 75, 0.08);
-}
-
-.stat-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.stat-icon {
-  font-size: 1.8rem;
-  background: #f4f2ff;
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-}
-
-.stat-trend {
-  font-size: 0.75rem;
-  padding: 0.25rem 0.6rem;
-  background: #ecfdf5;
-  color: #059669;
-  border-radius: 999px;
+  color: var(--text-muted);
+  text-transform: uppercase;
   font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-bottom: var(--space-2);
 }
 
-.stat-value {
-  font-size: 1.65rem;
+.metric-value {
+  font-size: 2.6rem;
   font-weight: 800;
-  color: #1c1948;
-  margin: 0 0 0.2rem 0;
+  color: var(--primary);
+  line-height: 1;
+  margin-bottom: var(--space-2);
 }
 
-.stat-label {
-  color: #73718b;
-  font-size: 0.88rem;
-  margin: 0;
+.metric-hint {
+  font-size: 0.85rem;
+  color: var(--text-muted);
 }
 
-/* Dashboard content */
-.dashboard-content {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 1.5rem;
-}
+.text-success { color: #2ecc71 !important; }
+.text-muted { color: #8a8d93 !important; }
 
-.panel-card {
+/* DATA TABLE CONTAINER */
+.data-table-container {
   background: white;
-  border: 1px solid #eceaf5;
-  border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: 0 8px 24px rgba(30, 24, 75, 0.04);
+  padding: var(--space-6);
+  border-radius: var(--space-4);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.02);
 }
 
-.panel-header {
+.table-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1.25rem;
+  align-items: center;
+  margin-bottom: var(--space-6);
+  flex-wrap: wrap;
+  gap: var(--space-2);
 }
 
-.panel-header h2 {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #1c1948;
-  margin: 0 0 0.2rem 0;
+.table-header h3 {
+  font-size: 1.3rem;
+  margin-bottom: var(--space-1);
 }
 
-.panel-header p {
-  color: #73718b;
-  font-size: 0.85rem;
-  margin: 0;
-}
-
-/* Table */
-.table-container {
-  overflow-x: auto;
-}
-
-.dash-table {
-  width: 100%;
-  border-collapse: collapse;
+.table-subtitle {
+  color: var(--text-muted);
   font-size: 0.9rem;
 }
 
-.dash-table th {
+.btn-manage-link {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.95rem;
+  padding: 0;
+}
+
+.btn-manage-link:hover { text-decoration: underline; }
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th, .data-table td {
+  padding: var(--space-3) var(--space-4);
   text-align: left;
-  padding: 0.85rem 0.75rem;
-  color: #73718b;
-  font-weight: 600;
-  border-bottom: 1px solid #f0edf8;
-  font-size: 0.8rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.data-table th {
+  background: var(--bg-light);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
-.dash-table td {
-  padding: 1rem 0.75rem;
-  border-bottom: 1px solid #f6f5fc;
-  color: #333;
-}
-
-.dash-table tbody tr:hover {
-  background-color: #faf9ff;
-}
-
-.event-cell-name {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-}
-
-.event-cell-loc {
-  font-size: 0.78rem;
-  color: #73718b;
-}
-
-.category-pill {
-  display: inline-block;
-  padding: 0.25rem 0.65rem;
-  background: #f0edff;
-  color: var(--primary, #6644ff);
-  border-radius: 999px;
-  font-size: 0.78rem;
+.font-semibold {
   font-weight: 600;
+  color: var(--text-main);
+}
+
+.category-badge {
+  background: rgba(102, 68, 255, 0.1);
+  color: var(--primary);
+  padding: 4px 10px;
+  border-radius: 50px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
 }
 
 .status-badge {
-  display: inline-block;
-  padding: 0.25rem 0.65rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 50px;
+  font-size: 0.8rem;
+  font-weight: 700;
 }
 
-.status-badge.active {
-  background: #ecfdf5;
-  color: #059669;
+.status-active {
+  background: rgba(46, 204, 113, 0.15);
+  color: #27ae60;
 }
 
-.status-badge.draft {
-  background: #fffbeb;
-  color: #d97706;
+.status-completed {
+  background: rgba(108, 117, 125, 0.15);
+  color: #6c757d;
 }
 
-.table-btn-link {
-  color: var(--primary, #6644ff);
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 0.85rem;
+.empty-table-cell {
+  text-align: center;
+  padding: var(--space-12) var(--space-4);
+  background: var(--bg-light);
 }
 
-.table-btn-link:hover {
-  text-decoration: underline;
-}
-
-/* Shortcuts */
-.shortcut-list {
+.empty-table-content {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-}
-
-.shortcut-item {
-  display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.9rem;
-  background: #fafafe;
-  border: 1px solid #eeeaf7;
-  border-radius: 12px;
-  text-decoration: none;
-  color: inherit;
-  transition: all 0.2s ease;
+  gap: var(--space-2);
 }
 
-.shortcut-item:hover {
-  background: #f1edff;
-  border-color: #d8cefc;
-  transform: translateX(3px);
+.empty-table-content .empty-icon {
+  font-size: 2.5rem;
 }
 
-.shortcut-icon {
-  font-size: 1.4rem;
-  width: 40px;
-  height: 40px;
-  background: white;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+.empty-table-content p {
+  color: var(--text-muted);
+  margin-bottom: var(--space-2);
 }
 
-.shortcut-info {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-
-.shortcut-info strong {
-  font-size: 0.92rem;
-  color: #1c1948;
-}
-
-.shortcut-info span {
-  font-size: 0.78rem;
-  color: #73718b;
-}
-
-.arrow {
-  font-size: 1.3rem;
-  color: #9c99b3;
-}
-
-/* Responsive */
-@media (max-width: 1024px) {
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .dashboard-content {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 640px) {
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-  .dash-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .dash-actions {
-    width: 100%;
-  }
-  .dash-actions .btn {
-    width: 100%;
-  }
+@media (max-width: 768px) {
+  .dashboard-header { flex-direction: column; align-items: flex-start; }
 }
 </style>
